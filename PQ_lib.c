@@ -48,12 +48,12 @@ void createPQ(PQ_t *pq, H_class pqClass, int eleSize, int maxSize, int (*cp)(voi
     pq->cp = cp;
     pq->eleSize = eleSize;
     pq->heap.elemts = (void*)malloc(sizeof(char) *eleSize*maxSize);
-    pq->heap.numElemts = 1;///index
+    pq->heap.numElemts = 0;///index
 }
 
 int IsEmpty(PQ_t *pq) /* return 0: not empty, 1: empty*/
 {
-    if(pq->heap.numElemts == 1)
+    if(pq->heap.numElemts == 0)
         return 1;
     else
         return 0;
@@ -70,14 +70,14 @@ int IsFull(PQ_t *pq) /* return 0: not full, 1:full */
 static void ReheapUp(PQ_t *pq, int root, int bottom)
 {
     int parent_i;
-    while(root != bottom)//means bottom != 1
+    while(root < bottom)//means bottom != 0
     {
         if(pq->pqClass == 1)//MAXheap
         {
-            if(bottom%2 == 0)//bottom is even, means left_child
-                parent_i = bottom/2;
-            else//bottom is odd, means right_child
+            if(bottom%2 == 1)//bottom is odd, means left_child
                 parent_i = (bottom-1)/2;
+            else//bottom is even, means right_child
+                parent_i = (bottom-2)/2;
 
             if( pq->cp( (char*)pq->heap.elemts + (pq->eleSize * parent_i),  (char*)pq->heap.elemts + (pq->eleSize * bottom)) == 0 )
                 //cp == 0 means first <= second, which means parent <= left_child
@@ -88,11 +88,10 @@ static void ReheapUp(PQ_t *pq, int root, int bottom)
         }
         else if(pq->pqClass == 0)//MINheap
         {
-            if(bottom%2 == 0)//bottom is even, means left_child
-                parent_i = bottom/2;
-            else//bottom is odd, means right_child
+            if(bottom%2 == 1)//bottom is odd, means left_child
                 parent_i = (bottom-1)/2;
-
+            else//bottom is even, means right_child
+                parent_i = (bottom-2)/2;
 
             if( pq->cp((char*)pq->heap.elemts + (pq->eleSize * parent_i),  (char*)pq->heap.elemts + (pq->eleSize * bottom)) == 1 )
                 //cp == 1 means first > second, which means parent > left_child
@@ -117,11 +116,12 @@ int Enqueue(PQ_t *pq, void *eleA) /* add an element into PQ */
 static void ReheapDown(PQ_t *pq, int root, int bottom)
 //static 在使用者的main中沒辦法看到//private在C裡面語法用static
 {
-    int flag = 1, L = root*2, R = root*2+1, max_i, min_i;
+    int flag = 1, L, R, max_i, min_i;
     while(flag == 1)
     {
-        L = root*2;
-        R = root*2+1;
+        L = root*2+1;
+        R = root*2+2;
+
         if( L > bottom &&  R > bottom)
             break;
 
@@ -169,9 +169,9 @@ void *Dequeue(PQ_t *pq) /*delete an element from PQ */
     if( IsEmpty(pq) )
         return NULL;
     void *print = (void*)malloc(sizeof(char) * pq->eleSize);
-    memcpy(print, ( ((char*)pq->heap.elemts)+pq->eleSize ), pq->eleSize);
+    memcpy(print, ((char*)pq->heap.elemts), pq->eleSize);
     pq->heap.numElemts--;
-    memcpy( ( ( ( char*)pq->heap.elemts) + pq->eleSize ), ( ((char*)pq->heap.elemts)+ pq->eleSize * pq->heap.numElemts), pq->eleSize);
+    memcpy( ( ( char*)pq->heap.elemts), ( ((char*)pq->heap.elemts)+ pq->eleSize * pq->heap.numElemts), pq->eleSize);
     ReheapDown(pq, 1, pq->heap.numElemts-1);
     return print;
 
