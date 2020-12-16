@@ -48,12 +48,12 @@ void createPQ(PQ_t *pq, H_class pqClass, int eleSize, int maxSize, int (*cp)(voi
     pq->cp = cp;
     pq->eleSize = eleSize;
     pq->heap.elemts = (void*)malloc(sizeof(char) *eleSize*maxSize);
-    pq->heap.numElemts = 0;///index
+    pq->heap.numElemts = 1;///index
 }
 
 int IsEmpty(PQ_t *pq) /* return 0: not empty, 1: empty*/
 {
-    if(pq->heap.numElemts == 0)
+    if(pq->heap.numElemts == 1)
         return 1;
     else
         return 0;
@@ -61,90 +61,46 @@ int IsEmpty(PQ_t *pq) /* return 0: not empty, 1: empty*/
 
 int IsFull(PQ_t *pq) /* return 0: not full, 1:full */
 {
-    if(pq->heap.numElemts == pq->maxSize)
-        return 0;
-    else
+    if(pq->heap.numElemts == pq->maxSize+1)
         return 1;
+    else
+        return 0;
 }
-static void check(PQ_t *pq, int root)
-{
-    int L_child = 2*root+1, R_child = 2*root+2;
-    if(L_child > pq->heap.numElemts || R_child > pq->heap.numElemts)
-        return;
-    if(pq->pqClass == 1) ///MAXheap
-    {
-        if( pq->cp((char*)pq->heap.elemts + (pq->eleSize * root),  (char*)pq->heap.elemts + (pq->eleSize * L_child)) == 0 )
-            ///cp == 0 means first <= second, which means parent <= left_child
-        {
-            swap_fn( (char*)pq->heap.elemts + (pq->eleSize * root),  (char*)pq->heap.elemts + (pq->eleSize * L_child), pq->eleSize);
-        }
-        if( pq->cp((char*)pq->heap.elemts + (pq->eleSize * root),  (char*)pq->heap.elemts + (pq->eleSize * R_child)) == 0 )
-            ///cp == 0 means first <= second, which means parent <= left_child
-        {
-            swap_fn( (char*)pq->heap.elemts + (pq->eleSize * root),  (char*)pq->heap.elemts + (pq->eleSize * R_child), pq->eleSize);
-        }
-    }
-    else if(pq->pqClass == 0)///MINheap
-    {
-        if( pq->cp((char*)pq->heap.elemts + (pq->eleSize * root),  (char*)pq->heap.elemts + (pq->eleSize * L_child)) == 1 )
-            ///cp == 0 means first > second, which means parent > left_child
-        {
-            swap_fn( (char*)pq->heap.elemts + (pq->eleSize * root),  (char*)pq->heap.elemts + (pq->eleSize * L_child), pq->eleSize);
-        }
-        if( pq->cp((char*)pq->heap.elemts + (pq->eleSize * root),  (char*)pq->heap.elemts + (pq->eleSize * R_child)) == 1 )
-            ///cp == 0 means first > second, which means parent > left_child
-        {
-            swap_fn( (char*)pq->heap.elemts + (pq->eleSize * root),  (char*)pq->heap.elemts + (pq->eleSize * R_child), pq->eleSize);
-        }
 
-        return;
-    }
-}
 static void ReheapUp(PQ_t *pq, int root, int bottom)
 {
-    int pre_i;
-    while(root != bottom)///means bottom != 0
+    int parent_i;
+    while(root != bottom)//means bottom != 1
     {
-        if(pq->pqClass == 1)///MAXheap
+        if(pq->pqClass == 1)//MAXheap
         {
-            if(bottom%2 == 1)///bottom is odd
-            {
-                pre_i = (bottom-1)/2;///pre_i is parent i
-            }
-            else///bottom is even
-            {
-                pre_i = (bottom-2)/2;
-            }
+            if(bottom%2 == 0)//bottom is even, means left_child
+                parent_i = bottom/2;
+            else//bottom is odd, means right_child
+                parent_i = (bottom-1)/2;
 
-            if( pq->cp((char*)pq->heap.elemts + (pq->eleSize * pre_i),  (char*)pq->heap.elemts + (pq->eleSize * bottom)) == 0 )
-                ///cp == 0 means first <= second, which means parent <= left_child
+            if( pq->cp( (char*)pq->heap.elemts + (pq->eleSize * parent_i),  (char*)pq->heap.elemts + (pq->eleSize * bottom)) == 0 )
+                //cp == 0 means first <= second, which means parent <= left_child
             {
-                swap_fn( (char*)pq->heap.elemts + (pq->eleSize * pre_i),  (char*)pq->heap.elemts + (pq->eleSize * bottom), pq->eleSize);
+                swap_fn( (char*)pq->heap.elemts + (pq->eleSize * parent_i),  (char*)pq->heap.elemts + (pq->eleSize * bottom), pq->eleSize);
             }
-            bottom = pre_i;
+            bottom = parent_i;
         }
-        else if(pq->pqClass == 0)///MINheap
+        else if(pq->pqClass == 0)//MINheap
         {
-            if(bottom%2 == 1)///bottom is odd
-            {
-                pre_i = (bottom-1)/2;///pre_i is parent i
-            }
-            else///bottom is even
-            {
-                pre_i = (bottom-2)/2;
-            }
+            if(bottom%2 == 0)//bottom is even, means left_child
+                parent_i = bottom/2;
+            else//bottom is odd, means right_child
+                parent_i = (bottom-1)/2;
 
 
-            if( pq->cp((char*)pq->heap.elemts + (pq->eleSize * pre_i),  (char*)pq->heap.elemts + (pq->eleSize * bottom)) == 1 )
-                ///cp == 1 means first > second, which means parent > left_child
+            if( pq->cp((char*)pq->heap.elemts + (pq->eleSize * parent_i),  (char*)pq->heap.elemts + (pq->eleSize * bottom)) == 1 )
+                //cp == 1 means first > second, which means parent > left_child
             {
-                swap_fn( (char*)pq->heap.elemts + (pq->eleSize * pre_i),  (char*)pq->heap.elemts + (pq->eleSize * bottom), pq->eleSize);
+                swap_fn( (char*)pq->heap.elemts + (pq->eleSize * parent_i),  (char*)pq->heap.elemts + (pq->eleSize * bottom), pq->eleSize);
             }
-            bottom = pre_i;
+            bottom = parent_i;
         }
-
-        check(pq, pre_i);
-
     }
     return;
 }
@@ -154,21 +110,70 @@ int Enqueue(PQ_t *pq, void *eleA) /* add an element into PQ */
         return 0;
     Heap_t cur = pq->heap;
     memcpy( ((char*)pq->heap.elemts) + (pq->eleSize) * (pq->heap.numElemts), eleA, pq->eleSize);
-    ReheapUp( pq, 0, pq->heap.numElemts);
+    ReheapUp( pq, 1, pq->heap.numElemts);
     pq->heap.numElemts++;
 }
+
+static void ReheapDown(PQ_t *pq, int root, int bottom)
+//static 在使用者的main中沒辦法看到//private在C裡面語法用static
+{
+    int flag = 1, L = root*2, R = root*2+1, max_i, min_i;
+    while(flag == 1)
+    {
+        L = root*2;
+        R = root*2+1;
+        if( L > bottom &&  R > bottom)
+            break;
+
+        flag = 0;
+
+        if(pq->pqClass == 1)//MAXHeap
+        {
+            //decide max_child
+            // left_child > right_child
+            if( pq->cp( ((char*)pq->heap.elemts) + pq->eleSize*L, ((char*)pq->heap.elemts) + pq->eleSize*R ) == 1 )
+                max_i = L;
+            else
+                max_i = R;
+            //root <= max_child
+            if( pq->cp( ((char*)pq->heap.elemts) + pq->eleSize*root, ((char*)pq->heap.elemts) + pq->eleSize*max_i ) == 0 )
+            {
+                swap_fn(((char*)pq->heap.elemts) + pq->eleSize*root, ((char*)pq->heap.elemts) + pq->eleSize*max_i, pq->eleSize);
+                root = max_i;
+                flag = 1;
+            }
+        }
+        else//MINHeap
+        {
+            //decide min_child
+            // left_child > right_child
+            if( pq->cp( ((char*)pq->heap.elemts) + pq->eleSize*L, ((char*)pq->heap.elemts) + pq->eleSize*R ) == 1 )
+                min_i = R;
+            else
+                min_i = L;
+            //root > min_child
+            if( pq->cp( ((char*)pq->heap.elemts) + pq->eleSize*root, ((char*)pq->heap.elemts) + pq->eleSize*min_i ) == 1 )
+            {
+                swap_fn(((char*)pq->heap.elemts) + pq->eleSize*root, ((char*)pq->heap.elemts) + pq->eleSize*min_i, pq->eleSize);
+                root = min_i;
+                flag = 1;
+            }
+        }
+    }
+}
+
+
 
 void *Dequeue(PQ_t *pq) /*delete an element from PQ */
 {
     if( IsEmpty(pq) )
-        return 0;
-}
-
-static void ReheapDown(PQ_t *PQ, int root, int bottom) //private在C裡面語法用static
-//static 在使用者的main中沒辦法看到
-{
-    if(root == bottom)
-        return;
+        return NULL;
+    void *print = (void*)malloc(sizeof(char) * pq->eleSize);
+    memcpy(print, ( ((char*)pq->heap.elemts)+pq->eleSize ), pq->eleSize);
+    pq->heap.numElemts--;
+    memcpy( ( ( ( char*)pq->heap.elemts) + pq->eleSize ), ( ((char*)pq->heap.elemts)+ pq->eleSize * pq->heap.numElemts), pq->eleSize);
+    ReheapDown(pq, 1, pq->heap.numElemts-1);
+    return print;
 
 }
 
