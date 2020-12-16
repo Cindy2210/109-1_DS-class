@@ -61,7 +61,7 @@ int IsEmpty(PQ_t *pq) /* return 0: not empty, 1: empty*/
 
 int IsFull(PQ_t *pq) /* return 0: not full, 1:full */
 {
-    if(pq->heap.numElemts == pq->maxSize+1)
+    if(pq->heap.numElemts == pq->maxSize)
         return 1;
     else
         return 0;
