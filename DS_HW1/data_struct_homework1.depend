@@ -1,0 +1,16 @@
+# depslib dependency file v1.0
+1602785899 source:c:\users\cindyli0122\desktop\ds_hw1\lib.c
+	"Lib.h"
+	<stdlib.h>
+	<stdio.h>
+
+1602785898 c:\users\cindyli0122\desktop\ds_hw1\lib.h
+	<stdio.h>
+	<stdlib.h>
+
+1602785899 source:c:\users\cindyli0122\desktop\ds_hw1\main_.c
+	<stdio.h>
+	<stdlib.h>
+	<stddef.h>
+	"Lib.h"
+
